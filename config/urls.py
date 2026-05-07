@@ -18,8 +18,10 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.middleware.csrf import get_token
 from django.urls import path
+from django.views.decorators.http import require_GET
 from ninja import NinjaAPI
 from ninja.errors import AuthorizationError, HttpError, ValidationError
 
@@ -77,8 +79,15 @@ api.add_router(f"/{api_prefix}", "articles.api.router")
 api.add_router(f"/{api_prefix}", "comments.api.router")
 api.add_router("/auth", "jwt_ninja.api.router")
 
+
+@require_GET
+def csrf_view(request: HttpRequest) -> JsonResponse:
+    return JsonResponse({"csrfToken": get_token(request)})
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("csrf/", csrf_view),
     path("", api.urls),
 ]
 
